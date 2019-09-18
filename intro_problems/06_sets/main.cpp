@@ -35,5 +35,4 @@ int main() {
   while(t--) {
     test_case();
   }
-
-  }
+}
