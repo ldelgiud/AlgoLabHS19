@@ -9,7 +9,6 @@ int main() {
     int sum = 0;
     int n;
     cin >> n;
-
     while (n--) {
       int temp;
       cin >> temp;
