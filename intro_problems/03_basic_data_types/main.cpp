@@ -9,8 +9,7 @@ void test_case() {
   string  c;
   double d;
 
-  cin >> a >> b >> c >> d;
-  
+  cin >> a >> b >> c >> d; 
   cout << a << ' ' << b << ' ' << c << ' ' << d << endl;
   
 }
