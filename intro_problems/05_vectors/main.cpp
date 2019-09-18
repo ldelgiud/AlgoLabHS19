@@ -8,7 +8,6 @@ void test_case() {
   cin >> n;
   vector<int> v(n);
 
-  
   for(int i = 0; i < n; ++i) {
     int tmp; cin >> tmp;
     v[i] = tmp;
