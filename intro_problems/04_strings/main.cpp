@@ -15,7 +15,6 @@ void test_case() {
   for (int i = 0; i < a_length; ++i) {
     c[i] = a[a_length-i-1];
   }
-
   
   for (int i = 0; i < b_length; ++i) {
     d[i] = b[b_length-i-1];
