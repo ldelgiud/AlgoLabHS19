@@ -21,6 +21,5 @@ int main() {
   std::cout << std::setprecision(3);
   while(t--) {
     test_case();
-
   }
 }
