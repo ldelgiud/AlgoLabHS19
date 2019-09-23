@@ -18,7 +18,7 @@ void test_case() {
 int main() {
   
   int t; cin >> t;
-  std::cout << std::setprecision(3);
+  cout << setprecision(2) << fixed;
   while(t--) {
     test_case();
   }
