@@ -28,7 +28,7 @@ void test_case(int n) {
     long r, s, t, u;
     cin >> r >> s >> t >> u;
     //cout << i << endl;
-     K::Point_2 begin(r,s), end(t,u);
+    K::Point_2 begin(r,s), end(t,u);
     K::Segment_2 seg(begin, end);
     if (CGAL::do_intersect(seg, ray)) {
       auto o = CGAL::intersection(seg, ray);
