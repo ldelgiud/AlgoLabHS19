@@ -11,6 +11,22 @@ iostream
 -
 CGAL/Exact_predicates_exact_constructions_kernel.h
 -
+CGAL/Exact_predicates_inexact_constructions_kernel.h
+-
+CGAL/squared_distance_2.h
+-
 limits
+-
+iomanip
+-
+cmath
+-
+set
+-
+unordered_set
+-
+utility
+-
+boost/functional/hash.hpp
 -
 
