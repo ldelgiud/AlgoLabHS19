@@ -31,7 +31,11 @@
 *.app
 
 #Cmake
+*cmake*
 CMake*
 
 #boost
 boost_1_66_0/
+
+#python files
+*.py
