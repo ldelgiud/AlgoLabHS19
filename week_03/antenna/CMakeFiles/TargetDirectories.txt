@@ -1,3 +1,0 @@
-/nas/ldelgiud/Documents/AlgoLabHS19/week_03/antenna/CMakeFiles/rebuild_cache.dir
-/nas/ldelgiud/Documents/AlgoLabHS19/week_03/antenna/CMakeFiles/main.dir
-/nas/ldelgiud/Documents/AlgoLabHS19/week_03/antenna/CMakeFiles/edit_cache.dir
