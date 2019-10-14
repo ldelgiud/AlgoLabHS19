@@ -41,6 +41,7 @@ void test_case() {
       } else return true;
     });
 
+  
   std::vector<bool> alive(n, true);
   for (int i = 0; i < n; ++i) {
     if (alive[i]) {
