@@ -1,0 +1,51 @@
+#include <iostream>
+#include <vector>
+#include <algorithm>
+#include <utility>
+#include <tuple>
+
+void test_case() {
+
+  int n; std::cin >> n;
+  std::vector<int> planks;
+  planks.reserve(n);
+  int len = 0;
+  for (int i= 0; i < n; ++i) {
+    int l_i;
+    std::cin >> l_i;
+    planks.push_back(l_i);
+    len += l_i;
+  }
+
+  if (len%4 != 0) {
+    std::cout << 0 << std::endl;
+    return;
+  }
+
+  int n1 = n/2;
+  int n2 = (n+1)/2;
+  
+  std::vector<std::tuple<int,int,int,int>> L1(1<<);
+  std::vector<std::tuple<int,int,int,int>> L2(2<<((n+1)/2));
+
+  for(long i=0;i<(1<<n2*2);++i){
+    vector<long> u(4,0);
+
+    for(int j=0;j<n2;++j){
+      long idx = (i & (3<<2*j)) >> 2*j;
+      u[idx] += L2[j];
+    }
+
+    if(u[0]<=goal && u[1]<=goal && u[2]<= goal && u[3]<=goal){
+      m_L2.push_back(make_tuple(u[0],u[1],u[2],u[3]));
+    }
+  }
+
+}
+
+
+int main() {
+  int t; std::cin >> t;
+  while(t--) test_case();
+
+}
