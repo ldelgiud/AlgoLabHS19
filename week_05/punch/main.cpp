@@ -17,10 +17,15 @@ void test_case() {
   }
 
   sort(ingr.begin(),ingr.end());
-
-  while(k)
+  int bev_cnt = 0;
+  int cost = n / ingr[0] + 1;
+  for (int i = 0; i < n; ++i)  {
     
 
+
+  }
+
+  cout << cost << ' ' << bev_cnt << endl;
 }
 
 
