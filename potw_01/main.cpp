@@ -8,7 +8,6 @@ using namespace std;
 void test_case() {
   int n,k;
   cin >> n >> k;
-
   vector<int> v(n);
   
   for (int i = 0; i < n; ++i) {
