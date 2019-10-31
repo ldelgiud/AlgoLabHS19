@@ -33,7 +33,7 @@ class edge_adder {
 };
 
 #define trace(x)// std::cout << #x << ": " << x << std::endl
-#define trace_vec(x) for (auto val: x) {std::cout << val << ' ';} std::cout << std::endl
+#define trace_vec(x)// for (auto val: x) {std::cout << val << ' ';} std::cout << std::endl
 
 void test_case() {
   int h, w; std::cin >> h >> w;
