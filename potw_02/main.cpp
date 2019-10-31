@@ -10,7 +10,6 @@ int n, m, k;
 
 void test_case() {
   cin >> n >> m >> k;
-
   Coins = vector<int>(n);
 
   for (int i = 0; i < n; ++i) {

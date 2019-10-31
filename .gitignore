@@ -41,3 +41,6 @@ boost_1_66_0/
 *.py
 *.stackdump
 week_06/london/test5.in
+
+#emacs dumps
+*.cpp~
