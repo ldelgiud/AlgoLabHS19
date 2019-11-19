@@ -42,16 +42,60 @@ class edge_adder {
 };
 
 void test_case() {
+  
   int g, s, l; std::cin >> g >> s >> l;
-  graph G(g + s);
+  graph G(g+s);
   auto src = boost::add_vertex(G);
   auto trg = boost::add_vertex(G);
+  
   edge_adder adder(G);
+  auto rc_map = boost::get(boost::edge_residual_capacity, G);
 
   for (int i = 0; i < l; ++i) {
-    int u, v; 
-    
+    int u, v; std::cin >> u >> v;
+    adder.add_edge(u, g+v, 1);
   }
+
+  for (int i = 0; i < g; ++i) {
+    adder.add_edge(src, i, 1);
+  }
+
+  for (int i = 0; i < s; ++i) {
+    adder.add_edge(g+i, trg, 1);
+  }
+
+  int flow = boost::push_relabel_max_flow(G, src, trg);
+
+  std::vector<int> vis(g+s+2, false); // visited flags
+  std::queue<int> Q; // BFS queue (from std:: not boost::)
+  vis[src] = true; // Mark the source as visited
+  Q.push(src);
+  while (!Q.empty()) {
+    const int u = Q.front();
+    Q.pop();
+    out_edge_it ebeg, eend;
+    for (boost::tie(ebeg, eend) = boost::out_edges(u, G); ebeg != eend; ++ebeg) {
+      const int v = boost::target(*ebeg, G);
+      // Only follow edges with spare capacity
+      if (rc_map[*ebeg] == 0 || vis[v]) continue;
+      vis[v] = true;
+      Q.push(v);
+    }
+  }
+
+  std::vector<int> Ground,Sat;
+  for (int i = 0; i < g; ++i) {
+    if (!vis[i]) Ground.push_back(i);
+  }
+  for (int i = 0; i < s; ++i) {
+    if (vis[g+i]) Sat.push_back(i);
+  }
+  
+  std::cout << Ground.size() << ' ' << Sat.size() << std::endl;
+  for (int tmp : Ground) std::cout << tmp << ' ';
+  for (int tmp: Sat) std::cout << tmp << ' ';
+  std::cout << std::endl;
+
 }
 
 int main() {
