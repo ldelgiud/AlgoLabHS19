@@ -64,7 +64,7 @@ void test_case() {
 
   for (int i = 1; i <= n; ++i) {
     int s, p; std::cin >> s >> p;
-    adder.add_edge(i, trg, s, -p);
+    adder.add_edge(i, trg, s, 20-p);
     tot += s;
   }
 
@@ -73,13 +73,13 @@ void test_case() {
     adder.add_edge(i, i+1, v, e);
   }
 
-  int flow1 = boost::push_relabel_max_flow(G, src, trg);
-  boost::cycle_canceling(G);
-  int cost1 = boost::find_flow_cost(G);
-  if (flow1 < tot) std::cout << "impossible ";
+  int flow = boost::push_relabel_max_flow(G, src, trg);
+  boost::successive_shortest_path_nonnegative_weights(G, src, trg);
+  int cost = boost::find_flow_cost(G);
+  if (flow < tot) std::cout << "impossible ";
   else std::cout << "possible ";
-  std::cout << flow1 << " "; 
-  std::cout << -cost1 << "\n"; 
+  std::cout << flow << " "; 
+  std::cout << -(cost-20*flow) << "\n"; 
 }
 
 int main() {
