@@ -5,13 +5,12 @@
 #include <CGAL/QP_models.h>
 #include <CGAL/QP_functions.h>
 #include <CGAL/Gmpz.h>
-// choose input type (input coefficients must fit)
-typedef int IT;
+
 // choose exact type for solver (CGAL::Gmpz or CGAL::Gmpq)
-typedef CGAL::Gmpz ET;
+typedef CGAL::Gmpq ET;
 
 // program and solution types
-typedef CGAL::Quadratic_program<IT> Program;
+typedef CGAL::Quadratic_program<ET> Program;
 typedef CGAL::Quadratic_program_solution<ET> Solution;
 typedef CGAL::Quotient<ET> SolT;
 typedef std::pair<int,int> Nail;
@@ -26,7 +25,6 @@ double ceil_to_double(const SolT& x) {
 }
 
 
-const int INF = std::numeric_limits<int>::max();
 void test_case() {
   int n, m, h, w;
   std::cin >> n >> m >> h >> w;
@@ -51,45 +49,31 @@ void test_case() {
   for (int i = 0; i < n; ++i) {
     lp.set_c(i, -2*(w+h));
   }
-  
+
+  //NEW-OLD Conflicts
   for (int i = 0; i < n; ++i) {
-    if (m == 0) break;
-    int min_x = INF, min_y = INF;
+    ET best = 1<<29;
+
     for (int j = 0; j < m; ++j) {
-      int d_x = std::abs(new_nails[i].first - old_nails[j].first) - w;
-      int d_y = std::abs(new_nails[i].second - old_nails[j].second) -h;
-      if (d_x > d_y){
-	if (d_x < min_x) min_x = d_x;
-      } 
-      else {
-	if (d_y < min_y) min_y = d_y;
-      }
+      ET d_x = std::abs(new_nails[i].first - old_nails[j].first);
+      ET d_y = std::abs(new_nails[i].second - old_nails[j].second);
+      best = std::min(2*std::max(d_x/w, d_y/h)-1, best);
+      
     }
-    if (min_x*h < min_y*w) {
-      lp.set_a(i, i, w); lp.set_b(i, 2*min_x-w); // a_i*w <= 2d_x - w
-    } else {
-      lp.set_a(i, i, h); lp.set_b(i, 2*min_y-h); // a_i*h<= 2d_y- h
-    }
+    lp.set_a(i, i, 1); lp.set_b(i, best);
+    
   }
 
+  //NEW-NEW Conflicts
   int cnt = n;
   for (int i = 0; i < n; ++i) {
     for (int j = 0; j < i; ++j) {
-      int d_x = std::abs(new_nails[i].first - new_nails[j].first);
-      int d_y = std::abs(new_nails[i].second - new_nails[j].second);
-      trace(d_x);
-      trace(d_y);
-      if (d_x*h > d_y*w) {
-	lp.set_a(i, cnt, w);
-	lp.set_a(j, cnt, w);
-	lp.set_b(   cnt, 2*d_x); // a_j*w + a_i*w <= 2*d_x
-	trace(w);
-      } else {
-	lp.set_a(i, cnt, h);
-	lp.set_a(j, cnt, h);
-	lp.set_b(   cnt, 2*d_y); // a_j*w + a_i*h <= 2*d_y
-	trace(h);
-      }
+      ET d_x = std::abs(new_nails[i].first - new_nails[j].first);
+      ET d_y = std::abs(new_nails[i].second - new_nails[j].second);
+      
+      lp.set_a(i, cnt, 1);
+      lp.set_a(j, cnt, 1);
+      lp.set_b(   cnt, 2*std::max(d_x/w, d_y/h)); // a_j + a_i <= 2*max{d_x/w, d_y/h}
       ++cnt;
     }
   }
