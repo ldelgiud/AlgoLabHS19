@@ -7,12 +7,7 @@
 #include <CGAL/Union_find.h>
 
 typedef CGAL::Exact_predicates_inexact_constructions_kernel K;
-typedef CGAL::Triangulation_vertex_base_with_info_2<int,K> Vb;
-typedef CGAL::Triangulation_face_base_2<K> Fb;
-typedef CGAL::Triangulation_data_structure_2<Vb,Fb> Tds;
-typedef CGAL::Delaunay_triangulation_2<K,Tds>  Triangulation;
-typedef Triangulation::Vertex_handle Vertex_handle;
-typedef std::size_t ll;
+
 
 void test_case() {
   long long n, m, p;

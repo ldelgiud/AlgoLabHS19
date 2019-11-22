@@ -87,8 +87,6 @@ int main() {
 
     std::cout << ceil_to_double(first) << " " << ceil_to_double(median) << " "
 	      << ceil_to_double(last) << std::endl;
-    
-    
   }
   
 }
