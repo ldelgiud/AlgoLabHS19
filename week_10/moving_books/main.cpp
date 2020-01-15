@@ -71,7 +71,7 @@ void test_case() {
 }
 
 int main() {
-  std::sync_with_stdio(false);
+  std::ios_base::sync_with_stdio(false);
   int t; std::cin >> t;
   while(t--) test_case();
 }
