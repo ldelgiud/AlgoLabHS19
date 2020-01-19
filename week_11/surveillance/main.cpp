@@ -40,26 +40,26 @@ class edge_adder {
 
 void test_case() {
   int n, m, k, l; std::cin >> n >> m >> k >> l;
-  graph G(n);
+  graph G(2*n);
   edge_adder adder(G);
   int src = boost::add_vertex(G);
   int trg = boost::add_vertex(G);
-  int ext = boost::add_vertex(G);
-  adder.add_edge(src, ext, k);
   
   for (int i = 0; i < k; ++i) {
     int s; std::cin >> s;
-    adder.add_edge(s, trg, 1);
+    adder.add_edge(src, s, 1);
+    adder.add_edge(n+s, trg, 1);
   }
 
   for (int i = 0; i < l; ++i) {
     int p; std::cin >> p;
-    adder.add_edge(ext, p, 1);
+    adder.add_edge(p, n+p, 1);
   }
 
   for (int i = 0; i < m; ++i) {
     int x, y; std::cin >> x >> y;
-    adder.add_edge(x, y, 1);
+    adder.add_edge(x, y, k);
+    adder.add_edge(n+x, n+y, 1);
   }
 
   long flow = boost::push_relabel_max_flow(G, src, trg);
