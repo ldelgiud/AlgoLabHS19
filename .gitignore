@@ -28,5 +28,21 @@
 
 # Executables
 *.exe
-*.out
 *.app
+main
+
+#Cmake
+*cmake*
+CMake*
+Makefile
+#boost
+boost_1_66_0/
+
+#python files
+*.py
+*.stackdump
+
+#emacs dumps
+*.cpp~
+\#*#
+.#*
