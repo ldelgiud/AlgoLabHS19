@@ -29,8 +29,8 @@ double floor_to_double(const CGAL::Quotient<CGAL::Gmpz>& x)
 }
 
 void test_case() {
-  int x, y, n; std::cin >> x >> y >> n;
-  const int R = 0, X = 1, Y = 2;
+  long x, y, n; std::cin >> x >> y >> n;
+  const int X = 0, Y = 1, R = 2;
   Program lp (CGAL::SMALLER, false, 0, false, 0); 
 
 
@@ -38,32 +38,33 @@ void test_case() {
   lp.set_b(   0, 0);
 
   for (int i = 1; i <= n; ++i) {
-    int a, b, c, v; std::cin >> a >> b >> c >> v;
-    int len = std::sqrt(a*a+b*b);
+    long a, b, c, v; std::cin >> a >> b >> c >> v;
+    long len = std::sqrt(a*a+b*b);
     trace(a*x+b*y+c);
-    if (a*x+b*y+c > 0) {
+    if (a*x+b*y+c >= 0) {
       step("left");
       lp.set_a(X, i, -a);
       lp.set_a(Y, i, -b);
-      lp.set_a(R, i, len);
+      lp.set_a(R, i, len*v);
       lp.set_b(   i, c);
     } else {
       step("right");
       lp.set_a(X, i, a);
       lp.set_a(Y, i, b);
-      lp.set_a(R, i, -len);
+      lp.set_a(R, i, len*v);
       lp.set_b(   i, -c);
     }
   }
 
-  lp.set_c(R, -1);
   lp.set_c(X, 0);
   lp.set_c(Y, 0);
-
+  lp.set_c(R, -1);
 
   Solution s = CGAL::solve_linear_program(lp, ET());
   assert(s.solves_linear_program(lp));
-  std::cout << floor_to_double(-s.objective_value())<< std::endl;
+  if(s.is_unbounded()) std::cout << "unbounded\n";
+  else if (s.is_infeasible()) std::cout << "infeasible\n";
+  else std::cout << floor_to_double(-s.objective_value())<< std::endl;
 }
 
 
