@@ -1,6 +1,7 @@
 #include <iostream>
 #include <vector>
 #include <iomanip>
+#include <set>
 // example: how to solve a simple explicit LP
 #include <CGAL/QP_models.h>
 #include <CGAL/QP_functions.h>
@@ -34,6 +35,8 @@ double floor_to_double(const Sol_t &x) {
   while (a+1 <= x) a += 1;
   return a;
 }
+
+#define trace(x) //std::cout << #x << " = " << x << std::endl
 
 void test_case() {
   int n, m, c; std::cin >> n >> m >> c;
@@ -69,13 +72,11 @@ void test_case() {
     }
   }
 
-  int cnt = 0;
+  std::vector<std::vector<int>> weights(n);
   for (int i = 0; i < n; ++i) {
-
     for (int j = 0; j < m; ++j) {
       int w; std::cin >> w;
-      lp.set_c(cnt, -w);
-      ++cnt;
+      weights[i].push_back(100*w);
     }
   }
 
@@ -87,25 +88,60 @@ void test_case() {
     circle.push_back({Point(x,y), r*r});
   }
 
+  std::vector<std::vector<bool>> stadium_height(m);
+  std::vector<std::vector<bool>> warehouse_height(n);
+  std::vector<std::pair<Point, long>> active;
+  
   if (c > 0) {
     Delaunay t;
-    t.insert(circle.begin(), circle.end());
+    t.insert(stadium.begin(), stadium.end());
+    t.insert(warehouse.begin(), warehouse.end());
     
-    std::set<std::pair<Point, long>> active;
-    for (int i = 0; i < n; ++i) {
-      auto nearest = t.nearest_vertex(warehouse[i].first);
-      if (CGAL::squared_distance(nearest->point(), warehouse[i].first) < nearest->info()) {
+    for (auto i : circle) {
+      auto nearest = t.nearest_vertex(i.first);
+      if (CGAL::squared_distance(nearest->point(), i.first) < i.second) {
+	active.push_back(i);
+      }
+    }
 
+    for (int i = 0; i < active.size(); ++i) {
+      for (int j = 0; j < n; ++j) {
+	if (CGAL::squared_distance(active[i].first, warehouse[j].first) < active[i].second) {
+	  warehouse_height[j].push_back(true);
+	} else warehouse_height[j].push_back(false);
       }
 
+      for (int j = 0; j < m; ++j) {
+	if (CGAL::squared_distance(active[i].first, stadium[j].first) < active[i].second) {
+	  stadium_height[j].push_back(true);
+	} else stadium_height[j].push_back(false);
+      } 
     }
   }
+
+  int cnt = 0;
+  for (int i = 0; i < n; ++i) {
+    trace(i);
+    for (int j = 0; j < m; ++j) {
+      trace(j);
+      int w = weights[i][j];
+      int tmp = 0;
+      for (int k = 0; k < active.size(); ++k) {
+	if (stadium_height[j][k] != warehouse_height[i][k]) ++tmp;
+      }
+      w -= tmp;
+      lp.set_c(cnt, -w);
+      ++cnt;
+    }
+  }
+  
+  
   Solution s = CGAL::solve_linear_program(lp, ET());
   assert(s.solves_linear_program(lp));
   
   // output solution
   if(s.is_infeasible()) std::cout << "RIOT!\n";
-  else std::cout << floor_to_double(-s.objective_value()) << std::endl; 
+  else std::cout << floor_to_double(-s.objective_value()/100) << std::endl; 
 }
 
 
