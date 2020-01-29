@@ -33,26 +33,55 @@ void test_case() {
 
   //FIND MST (with Prim)
   std::vector<vertex_desc> p(n);
-  boost::prim_minimum_spanning_tree(G, &p[0]);
-
-  long best = 1 << 29;
+  boost::prim_minimum_spanning_tree(G, &p[0]);//, boost::root_vertex(s));
+  int cost = 0;
   for (int i = 0; i < n; ++i) {
     if (p[i] == i) continue;
-    edge_desc e = boost::edge(i, p[i], G).first;
-    int e_w = weights[e];
-    weights[e] = 1 << 29;
-
-    std::vector<vertex_desc> p2(n);
-    boost::prim_minimum_spanning_tree(G, &p2[0]);//, boost::root_vertex(s));
-    long sum = 0;
-    for (int j = 0; j < n; ++j) {
-      if (p2[j] == j) continue;
-      sum += weights[boost::edge(j, p2[j], G).first];
-    }
-    best = std::min(best, sum);
-    weights[e] = e_w;
+    cost += weights[boost::edge(i, p[i], G).first];
   }
+  
+  int best = 1 << 29;
+  if (n <= 100) {
 
+    
+    for (int i = 0; i < n; ++i) {
+      if (p[i] == i) continue;
+      edge_desc e = boost::edge(i, p[i], G).first;
+      int e_w = weights[e];
+      weights[e] = 1 << 29;
+      
+      std::vector<vertex_desc> p2(n);
+      boost::prim_minimum_spanning_tree(G, &p2[0]);//, boost::root_vertex(s));
+      int sum = 0;
+      for (int j = 0; j < n; ++j) {
+        if (p2[j] == j) continue;
+        sum += weights[boost::edge(j, p2[j], G).first];
+      }
+      best = std::min(best, sum);
+      weights[e] = e_w;
+    }
+  
+    std::cout << best << std::endl;
+    return;
+    
+  } 
+  
+  best = 1 << 29;
+  for (auto e = boost::edges(G).first; e != boost::edges(G).second; ++e) {
+    int src = boost::source(*e, G);
+    int trg = boost::target(*e, G);
+    if (src == p[trg] || p[src] == trg) continue;
+    int expensive = 0;
+    while (p[src] != src) {
+      expensive = std::max(expensive, weights[boost::edge(src, p[src], G).first]);
+      src = p[src];
+    }
+    while (p[trg] != trg) {
+      expensive = std::max(expensive, weights[boost::edge(trg, p[trg], G).first]);
+      trg = p[trg];
+    }
+    best = std::min(best, cost - expensive + weights[*e]);
+  }
 
   std::cout << best << std::endl;
 }
