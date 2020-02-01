@@ -1,30 +1,30 @@
-// STL includes
+// Algolab BGL Tutorial 2 (Max flow, by taubnert@ethz.ch)
+// Flow example demonstrating how to use push_relabel_max_flow using a custom edge adder
+// to manage the interior graph properties required for flow algorithms
 #include <iostream>
-#include <algorithm>
-#include <vector>
 #include <queue>
-// BGL includes
-#include <boost/graph/adjacency_list.hpp>
-#include <boost/graph/push_relabel_max_flow.hpp>
-#include <boost/tuple/tuple.hpp>
+#include <vector>
 
-// BGL graph definitions
-// =====================
-// Graph Type with nested interior edge properties for Flow Algorithms
-typedef	boost::adjacency_list_traits<boost::vecS, boost::vecS, boost::directedS> traits;
+// BGL include
+#include <boost/graph/adjacency_list.hpp>
+
+// BGL flow include *NEW*
+#include <boost/graph/push_relabel_max_flow.hpp>
+
+// Graph Type with nested interior edge properties for flow algorithms
+typedef boost::adjacency_list_traits<boost::vecS, boost::vecS, boost::directedS> traits;
 typedef boost::adjacency_list<boost::vecS, boost::vecS, boost::directedS, boost::no_property,
-	boost::property<boost::edge_capacity_t, long,
-		boost::property<boost::edge_residual_capacity_t, long,
-			boost::property<boost::edge_reverse_t, traits::edge_descriptor> > > >	graph;
-// Interior Property Maps
-typedef	boost::graph_traits<graph>::edge_descriptor			edge_desc;
+    boost::property<boost::edge_capacity_t, long,
+        boost::property<boost::edge_residual_capacity_t, long,
+            boost::property<boost::edge_reverse_t, traits::edge_descriptor>>>> graph;
+
+typedef traits::vertex_descriptor vertex_desc;
+typedef traits::edge_descriptor edge_desc;
 typedef	boost::graph_traits<graph>::out_edge_iterator			out_edge_it;
 
-// Custom Edge Adder Class, that holds the references
-// to the graph, capacity map and reverse edge map
-// ===================================================
+// Custom edge adder class, highly recommended
 class edge_adder {
- graph &G;
+  graph &G;
 
  public:
   explicit edge_adder(graph &G) : G(G) {}
@@ -32,8 +32,8 @@ class edge_adder {
   void add_edge(int from, int to, long capacity) {
     auto c_map = boost::get(boost::edge_capacity, G);
     auto r_map = boost::get(boost::edge_reverse, G);
-    const edge_desc e = boost::add_edge(from, to, G).first;
-    const edge_desc rev_e = boost::add_edge(to, from, G).first;
+    const auto e = boost::add_edge(from, to, G).first;
+    const auto rev_e = boost::add_edge(to, from, G).first;
     c_map[e] = capacity;
     c_map[rev_e] = 0; // reverse edge has no capacity!
     r_map[e] = rev_e;
@@ -41,31 +41,29 @@ class edge_adder {
   }
 };
 
+
 void test_case() {
-  
+
   int g, s, l; std::cin >> g >> s >> l;
   graph G(g+s);
-  auto src = boost::add_vertex(G);
-  auto trg = boost::add_vertex(G);
-  
-  edge_adder adder(G);
   auto rc_map = boost::get(boost::edge_residual_capacity, G);
-
+  int src = boost::add_vertex(G);
+  int trg = boost::add_vertex(G);
+  edge_adder adder(G);  
   for (int i = 0; i < l; ++i) {
     int u, v; std::cin >> u >> v;
     adder.add_edge(u, g+v, 1);
   }
-
   for (int i = 0; i < g; ++i) {
     adder.add_edge(src, i, 1);
   }
-
   for (int i = 0; i < s; ++i) {
     adder.add_edge(g+i, trg, 1);
   }
 
-  int flow = boost::push_relabel_max_flow(G, src, trg);
+  boost::push_relabel_max_flow(G, src, trg);
 
+  // BFS to find vertex set S
   std::vector<int> vis(g+s+2, false); // visited flags
   std::queue<int> Q; // BFS queue (from std:: not boost::)
   vis[src] = true; // Mark the source as visited
@@ -78,30 +76,32 @@ void test_case() {
       const int v = boost::target(*ebeg, G);
       // Only follow edges with spare capacity
       if (rc_map[*ebeg] == 0 || vis[v]) continue;
-      vis[v] = true;
-      Q.push(v);
+			vis[v] = true;
+			Q.push(v);
     }
   }
-
-  std::vector<int> Ground,Sat;
+  int cnt_1 = 0, cnt_2 = 0;
   for (int i = 0; i < g; ++i) {
-    if (!vis[i]) Ground.push_back(i);
+    if (!vis[i]) ++cnt_1;
   }
-  for (int i = 0; i < s; ++i) {
-    if (vis[g+i]) Sat.push_back(i);
-  }
-  
-  std::cout << Ground.size() << ' ' << Sat.size() << std::endl;
-  for (int tmp : Ground) std::cout << tmp << ' ';
-  for (int tmp: Sat) std::cout << tmp << ' ';
-  std::cout << std::endl;
 
+  for (int i = 0; i < s; ++i) {
+    if (vis[g+i]) ++cnt_2;
+  }
+
+  std::cout << cnt_1 << ' ' << cnt_2 << std::endl;
+  for (int i  = 0; i < g+s; ++i) {
+    if (i < g && !vis[i]) std::cout << i << ' ';
+    if (i >= g && vis[i]) std::cout << i-g << ' '; 
+  }
+  std::cout << std::endl;
 }
+
+
 
 int main() {
   std::ios_base::sync_with_stdio(false);
   int t; std::cin >> t;
   while(t--) test_case();
-  
 
 }

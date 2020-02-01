@@ -12,6 +12,7 @@
 #include <boost/graph/push_relabel_max_flow.hpp>
 #include <boost/graph/successive_shortest_path_nonnegative_weights.hpp>
 #include <boost/graph/find_flow_cost.hpp>
+#include <boost/graph/dijkstra_shortest_paths.hpp>
 
 // Graph Type with nested interior edge properties for Cost Flow Algorithms
 typedef boost::adjacency_list_traits<boost::vecS, boost::vecS, boost::directedS> traits;
@@ -21,77 +22,97 @@ typedef boost::adjacency_list<boost::vecS, boost::vecS, boost::directedS, boost:
             boost::property<boost::edge_reverse_t, traits::edge_descriptor,
                 boost::property <boost::edge_weight_t, long> > > > > graph; // new! weightmap corresponds to costs
 
-typedef boost::graph_traits<graph>::edge_descriptor             edge;
-typedef boost::graph_traits<graph>::edge_iterator           edge_it; // Iterator
-
-// Custom edge adder class, highly recommended
+typedef boost::graph_traits<graph>::edge_descriptor             edge_desc;
+typedef boost::graph_traits<graph>::out_edge_iterator           out_edge_it; // Iterator
+typedef boost::property_map<graph, boost::edge_weight_t>::type weight_map;
+// Custom edge adder class
 class edge_adder {
-  graph &G;
+ graph &G;
 
  public:
   explicit edge_adder(graph &G) : G(G) {}
-
-  void add_edge(int from, int to, long capacity) {
+  void add_edge(int from, int to, long capacity, long cost) {
     auto c_map = boost::get(boost::edge_capacity, G);
     auto r_map = boost::get(boost::edge_reverse, G);
-    const auto e = boost::add_edge(from, to, G).first;
-    const auto rev_e = boost::add_edge(to, from, G).first;
+    auto w_map = boost::get(boost::edge_weight, G); // new!
+    const edge_desc e = boost::add_edge(from, to, G).first;
+    const edge_desc rev_e = boost::add_edge(to, from, G).first;
     c_map[e] = capacity;
     c_map[rev_e] = 0; // reverse edge has no capacity!
     r_map[e] = rev_e;
     r_map[rev_e] = e;
+    w_map[e] = cost;   // new assign cost
+    w_map[rev_e] = -cost;   // new negative cost
   }
 };
 
-#define trace(x) //std::cout << #x << " = " << x << std::endl
+#define step(x)// std::cout << "STEP: " << x << std::endl;
+#define trace(x) //std::cout << #x << " = " << x << std::endl;
 
 void test_case() {
-  int n, m, s, f; std::cin >> n >> m >> s >> f;
-  // Create graph, edge adder class and propery maps
+  int n, m, s, f; std::cin >> n >> m >> s>> f;
+  trace(s);
+  trace(f);
+  step("READ");
   graph G(n);
+  weight_map weights = boost::get(boost::edge_weight, G);
   auto c_map = boost::get(boost::edge_capacity, G);
-  auto w_map = boost::get(boost::edge_weight, G);
-
+  
   for (int i = 0; i < m; ++i) {
     int a, b, c, d; std::cin >> a >> b >> c >> d;
-    edge e;
-    e = boost::add_edge(a, b, G).first;
+    edge_desc e = boost::add_edge(a, b, G).first;
+    weights[e] = d;
     c_map[e] = c;
-    w_map[e] = d;
-    e = boost::add_edge(b, a, G).first;
+     e = boost::add_edge(b, a, G).first;
+    weights[e] = d;
     c_map[e] = c;
-    w_map[e] = d;
   }
 
+  step("Shortest path");
   std::vector<int> dist_s(n);
+  std::vector<int> pred_s(n);
   boost::dijkstra_shortest_paths(G, s,
     boost::distance_map(boost::make_iterator_property_map(
-      dist_s.begin(), boost::get(boost::vertex_index, G))));
+      dist_s.begin(), boost::get(boost::vertex_index, G)))
+    .predecessor_map(boost::make_iterator_property_map(
+      pred_s.begin(), boost::get(boost::vertex_index, G))));
   std::vector<int> dist_f(n);
+  std::vector<int> pred_f(n);
   boost::dijkstra_shortest_paths(G, f,
     boost::distance_map(boost::make_iterator_property_map(
-      dist_f.begin(), boost::get(boost::vertex_index, G))));
+      dist_f.begin(), boost::get(boost::vertex_index, G)))
+    .predecessor_map(boost::make_iterator_property_map(
+      pred_f.begin(), boost::get(boost::vertex_index, G))));
 
-  int distance = dist_s[f];
-  
+
+  step("read edges");
+  int distance  = dist_s[f];
+  trace(distance);
   graph G2(n);
   edge_adder adder(G2);
-  edge_it ebeg, eend;
-  for (boost::tie(ebeg, eend) = boost::edges(G); ebeg != eend; ++ebeg) {
-    int source = boost::source(*ebeg, G), target = boost::target(*ebeg, G);
-    if (dist_s[source] + w_map[*ebeg] + dist_f[target] == distance) {
-      adder.add_edge(source, target, c_map[*ebeg]);
-      trace(c_map[*ebeg]);
+  for (auto it = boost::edges(G).first; it != boost::edges(G).second; ++it) {
+    int tot_dist = dist_s[boost::source(*it, G)] + weights[*it] + dist_f[boost::target(*it, G)];
+    trace(boost::source(*it, G));
+    trace(boost::target(*it, G));
+
+    if (tot_dist <= distance) {
+      
+      adder.add_edge(boost::source(*it, G),
+		     boost::target(*it, G),
+		     c_map[*it],
+		     0);  
     }
   }
 
-  long flow = boost::push_relabel_max_flow(G2, s, f);
+  step("flow");
+  int flow = boost::push_relabel_max_flow(G2, s, f);
   std::cout << flow << std::endl;
 }
 
 
 int main() {
   std::ios_base::sync_with_stdio(false);
-  int t; std::cin >> t;
-  while(t--) test_case();
+  int t; std::cin >> t; 
+  while (t--) test_case();
+
 }
