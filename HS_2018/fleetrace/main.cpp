@@ -50,7 +50,6 @@ void test_case() {
   int B, S, P; std::cin >> B >> S >> P;
   const int N = B + S;
   graph G(N);
-  auto c_map = boost::get(boost::edge_capacity, G);
   const int src = boost::add_vertex(G);
   const int src_ = boost::add_vertex(G);
   const int trg = boost::add_vertex(G);
@@ -63,23 +62,15 @@ void test_case() {
 
   for (int i = 0; i < B; ++i) adder.add_edge(src_,   i, 1, 0);
   for (int i = 0; i < S; ++i) adder.add_edge(B+i, trg, 1, 0);
-  adder.add_edge(src, src_, 500, 0);
+  adder.add_edge(src, src_, std::min(B,S), 0);
+  adder.add_edge(src_, trg, std::min(B,S), MAX);
   auto e = boost::edge(src, src_, G).first;
   int max_flow = boost::push_relabel_max_flow(G, src, trg);
   boost::successive_shortest_path_nonnegative_weights(G, src, trg);
   int cost = boost::find_flow_cost(G);
   int best_spectacle = max_flow*MAX - cost;
 
-  for (int i = 0; i < max_flow; i++) {
-    c_map[e] = i;
-    int flow = boost::push_relabel_max_flow(G, src, trg);
-    boost::successive_shortest_path_nonnegative_weights(G, src, trg);
-    cost  = boost::find_flow_cost(G);
-    int spectacle = flow*MAX -cost;
-    if (best_spectacle < spectacle) {
-      best_spectacle = spectacle;
-    }
-  }
+ 
   std::cout << best_spectacle << std::endl;
 }
 
