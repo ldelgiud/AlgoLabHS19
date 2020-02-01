@@ -47,28 +47,22 @@ class edge_adder {
 
 void test_case() {
   int n; std::cin >> n;
-  
-  graph G(n+2);
-  const int src = 0;
-  const int trg = n+1;
-  edge_adder adder(G);  
-  auto c_map = boost::get(boost::edge_capacity, G);
-  auto r_map = boost::get(boost::edge_reverse, G);
-  auto rc_map = boost::get(boost::edge_residual_capacity, G);
-  long tot = 0;
-  
-  for (int i = 1; i <= n; ++i) {
+  graph G(n);
+  edge_adder adder(G);
+  int src = boost::add_vertex(G);
+  int trg = boost::add_vertex(G);
+  for (int i = 0; i < n; ++i) {
     int a, c; std::cin >> a >> c;
     adder.add_edge(src, i, a, c);
   }
-
-  for (int i = 1; i <= n; ++i) {
+  int students = 0;
+  for (int i = 0; i < n; ++i) {
     int s, p; std::cin >> s >> p;
-    adder.add_edge(i, trg, s, 20-p);
-    tot += s;
+    adder.add_edge(i, trg, s, 20 -p);
+    students += s;
   }
 
-  for (int i = 1; i < n; ++i) {
+  for (int i = 0; i < n-1; ++i) {
     int v, e; std::cin >> v >> e;
     adder.add_edge(i, i+1, v, e);
   }
@@ -76,14 +70,15 @@ void test_case() {
   int flow = boost::push_relabel_max_flow(G, src, trg);
   boost::successive_shortest_path_nonnegative_weights(G, src, trg);
   int cost = boost::find_flow_cost(G);
-  if (flow < tot) std::cout << "impossible ";
-  else std::cout << "possible ";
-  std::cout << flow << " "; 
-  std::cout << -(cost-20*flow) << "\n"; 
+  if (flow == students) std::cout << "possible ";
+  else std::cout << "impossible ";
+
+  std::cout << flow << ' ' << flow*20-cost << std::endl;
 }
 
 int main() {
   std::ios_base::sync_with_stdio(false);
   int t; std::cin >> t;
-  while(t--) test_case();
+  while (t--) test_case();
+
 }
