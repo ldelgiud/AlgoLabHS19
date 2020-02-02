@@ -10,19 +10,13 @@ typedef CGAL::Exact_predicates_inexact_constructions_kernel   K;
 typedef K::Ray_2 Ray;
 typedef K::Point_2 P;
 // {(idx, y_0), (x_1, y_1)}
-typedef std::pair<P,P> Biker;
+typedef std::pair<Ray,int> Biker;
 
-K::FT speed(const Biker b) {
-  return std::abs((b.first.y()-b.second.y())/b.second.x());
-}
-
-bool hits(const Biker l, const Biker r) {
-  Ray left(P(0,l.first.y()),l.second);
-  Ray right(P(0,r.first.y()),r.second);
-  return CGAL::do_intersect(left, right);
+K::FT speed(const Biker r) {
+  return r.first.direction().dy() / r.first.direction().dx();
 }
 inline bool cmp_biker(const Biker l, const Biker r) {
-  return l.first.y() < r.first.y();
+  return l.first.source().y() < r.first.source().y();
 }
 
 void test_case() {
@@ -31,25 +25,25 @@ void test_case() {
   std::vector<Biker> B;
   B.reserve(n);
   for (int i = 0; i < n; ++i) {
-    long y_0, x_1, y_1;
+    K::FT y_0, x_1, y_1;
     std::cin >> y_0 >> x_1 >> y_1;
-    B.push_back({P(i,y_0),P(x_1,y_1)});
+    B.push_back({Ray(P(0,y_0),P(x_1,y_1)),i});
   }
   
   std::sort(B.begin(), B.end(), cmp_biker);
   std::deque<Biker> S;
-  int idx = 0;
+  S.push_front(B[0]);
+  int idx = 1;
 
   while (idx < n) {
     Biker curr = B[idx++];
+
     while (!S.empty()) {
       Biker opponent = S.front();
-      if (hits(curr, opponent)) {
-	if (speed(opponent) < speed(curr)) {
-	  break;
-	} else {
+      if (CGAL::do_intersect(curr.first, opponent.first)) {
+	if (speed(curr) + speed(opponent) > 0) {
 	  S.pop_front();
-	}
+	} else break;
       } else {
 	S.push_front(curr);
 	break;
@@ -59,8 +53,9 @@ void test_case() {
 
   std::vector<int> survivors;
   for (Biker b : S) {
-    survivors.push_back(b.first.x());
+    survivors.push_back(b.second);
   }
+
   std::sort(survivors.begin(), survivors.end());
   for (int i : survivors) {
     std::cout << i << ' ';
@@ -68,8 +63,9 @@ void test_case() {
   std::cout << std::endl;
 }
 
+
 int main() {
   std::ios::sync_with_stdio(false);
   int t; std::cin >> t;
-  while(t--) test_case();
+  while(t--) test_case(); 
 }
