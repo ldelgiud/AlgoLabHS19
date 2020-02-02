@@ -6,6 +6,7 @@
 // Includes
 // ========
 #include <iostream>
+#include <map>
 // BGL includes
 #include <boost/graph/adjacency_list.hpp>
 #include <boost/graph/cycle_canceling.hpp>
@@ -23,7 +24,6 @@ typedef boost::adjacency_list<boost::vecS, boost::vecS, boost::directedS, boost:
 
 typedef boost::graph_traits<graph>::edge_descriptor             edge_desc;
 typedef boost::graph_traits<graph>::out_edge_iterator           out_edge_it; // Iterator
-
 // Custom edge adder class
 class edge_adder {
  graph &G;
@@ -45,44 +45,62 @@ class edge_adder {
   }
 };
 
+#define trace(x) std::cout << #x << " = " << x << std::endl;
 
+struct Trip {
+  int start, end, price;
+
+  Trip(int s, int e, int p) {start = s; end = e; price = p;}
+};
+
+inline bool operator<(const Trip &l, const Trip &r) {
+  if (l.start == r.start) {
+    if (l.end == r.end) {
+      return l.price < r.price;
+    } else return l.end < r.end;
+  } else return l.start < r.start;
+}
+const int MAX = 128;
 void test_case() {
   int n, m; std::cin >> n >> m;
-  graph G(n+1);
-  edge_adder adder(G);  
-  auto c_map = boost::get(boost::edge_capacity, G);
-  auto r_map = boost::get(boost::edge_reverse, G);
-  auto rc_map = boost::get(boost::edge_residual_capacity, G);
+  graph G(n);
+  edge_adder adder(G);
+  const int src = boost::add_vertex(G);
+  const int trg = n-1;
 
-  int src = boost::add_vertex(G);
-  int max = 0;
-  int prev = 0;
-  for (int i = 1; i < n; ++i) {
+  int prev = 0, total = 0; 
+
+  for (int i = 0; i < n-1; ++i) {
     int c; std::cin >> c;
-    max += c*128;
-    adder.add_edge(i, i+1, c, 128);
-    if (c > prev) {
-      adder.add_edge(0, i, c-prev, 0);
-    } else if (c < prev) {
-      adder.add_edge(i, n, prev-c, 0);
-    }
+    adder.add_edge(i, i+1, c, MAX);
+    if (prev > c) adder.add_edge(i, trg, prev-c, 0);
+    else if (prev < c) adder.add_edge(src, i, c-prev, 0);
+    total += c;
     prev = c;
-  } 
-
+  }
+  // <trip = key, int = counter> 
+  std::map<Trip, int> M;
   for (int i = 0; i < m; ++i) {
     int a, b, d; std::cin >> a >> b >> d;
-    adder.add_edge(a+1, b+1, 1, (128-d) + (b-a-1)*128);
+    auto it = M.find(Trip(a,b,d));
+    if (it == M.end()) M.insert({Trip(a,b,d),1});
+    else (it->second)++;
   }
 
-  boost::successive_shortest_path_nonnegative_weights(G, 0, n);
-  int tot = max - boost::find_flow_cost(G);
-  std::cout << tot << std::endl;
-}
+  for (auto it = M.begin(); it != M.end(); ++it) {
+    Trip t = it->first;
+    int cap = it->second;
+    adder.add_edge(t.start, t.end, cap, MAX*(t.end-t.start)-t.price);
+  }
 
+  int flow = boost::push_relabel_max_flow(G, src, trg);
+  boost::successive_shortest_path_nonnegative_weights(G, src, trg);
+  int cost = boost::find_flow_cost(G);
+  std::cout << total*MAX - cost << std::endl;
+}
 
 int main() {
   std::ios_base::sync_with_stdio(false);
   int t; std::cin >> t;
-  while(t--) test_case();
-
+  while (t--) test_case();
 }
