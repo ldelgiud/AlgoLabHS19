@@ -38,7 +38,7 @@ class edge_adder {
   }
 };
 
-#define trace(x) //std::cout << #x << " = " << x << std::endl;
+#define trace(x) //std::cerr << #x << " = " << x << std::endl;
 
 void test_case() {
   int l, q; std::cin >> l >> q;
@@ -75,8 +75,7 @@ void test_case() {
   }
 
   long flow = boost::push_relabel_max_flow(G, src, trg);
-  trace(flow);
-  trace(total);
+
   if (flow == total) std::cout << "yes\n";
   else std::cout << "no\n";
 }
